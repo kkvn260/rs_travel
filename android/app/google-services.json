@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "739007207492",
+    "project_id": "rs-travel-36db0",
+    "storage_bucket": "rs-travel-36db0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739007207492:android:6cc2d78009869006fb4411",
+        "android_client_info": {
+          "package_name": "com.example.rs_travel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAebQIWqj7d1N3mYQORT0cGI4b17vVAaYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
