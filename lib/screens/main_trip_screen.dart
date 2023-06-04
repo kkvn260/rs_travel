@@ -14,7 +14,9 @@ class _MainTripState extends State<MainTrip> {
       body: Stack(
         children: [
           Positioned(
-            child: Container(),
+            child: Container(
+              child: const Center(child: Text("main trip")),
+            ),
           ),
         ],
       ),
