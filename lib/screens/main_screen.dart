@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rs_travel/config/palette.dart';
@@ -214,8 +212,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       userPassword = value;
                                     },
                                     validator: (value) {
-                                      if (value!.isEmpty || value.length < 4) {
-                                        return '비밀번호는 4글자 이상 입력해주세요.';
+                                      if (value!.isEmpty || value.length < 6) {
+                                        return '비밀번호는 6글자 이상 입력해주세요.';
                                       }
                                       return null;
                                     },
@@ -265,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       }
                                       return null;
                                     },
-                                    keyboardType: TextInputType.name,
+                                    keyboardType: TextInputType.text,
                                     decoration: InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.account_circle,
@@ -334,8 +332,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       userPassword = value;
                                     },
                                     validator: (value) {
-                                      if (value!.isEmpty || value.length < 4) {
-                                        return '비밀번호는 4글자 이상 입력해주세요.';
+                                      if (value!.isEmpty || value.length < 6) {
+                                        return '비밀번호는 6글자 이상 입력해주세요.';
                                       }
                                       return null;
                                     },
