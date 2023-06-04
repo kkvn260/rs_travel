@@ -86,6 +86,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0),
                     color: Colors.white.withOpacity(0.8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 15,
+                        spreadRadius: 5,
+                      ),
+                    ],
                   ),
                   child: SingleChildScrollView(
                     child: Column(

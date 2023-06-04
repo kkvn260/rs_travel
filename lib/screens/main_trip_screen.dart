@@ -32,6 +32,7 @@ class _MainTripState extends State<MainTrip> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[400],
       appBar: AppBar(
         actions: [
           IconButton(
@@ -51,11 +52,122 @@ class _MainTripState extends State<MainTrip> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Positioned(
+          //상단
+          Expanded(
+            flex: 2,
             child: Container(
-              child: const Center(child: Text("main trip")),
+              width: MediaQuery.of(context).size.width,
+              margin: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/trip_top.png'),
+                  fit: BoxFit.fill,
+                ),
+                color: Colors.white,
+              ),
+              child: const Text('일정관리'),
+            ),
+          ),
+          //중단
+          Expanded(
+            flex: 4,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              margin: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/trip_middle.jpeg'),
+                  opacity: 0.4,
+                  fit: BoxFit.fill,
+                ),
+                color: Colors.grey[300],
+              ),
+              child: const Text('최근일정'),
+            ),
+          ),
+          //하단
+          Expanded(
+            flex: 3,
+            child: Container(
+              margin: const EdgeInsets.all(10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width / 2 - 15,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.grey[300],
+                    ),
+                    child: Column(
+                      children: [
+                        Transform.scale(
+                          scale: 2,
+                          child: Transform.translate(
+                            offset: const Offset(-20, 20),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.add,
+                              ),
+                              iconSize: 50,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 60,
+                        ),
+                        const Text(
+                          "일정생성",
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width / 2 - 15,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      children: [
+                        Transform.scale(
+                          scale: 2,
+                          child: Transform.translate(
+                            offset: const Offset(-20, 20),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.search_outlined,
+                              ),
+                              iconSize: 50,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 60,
+                        ),
+                        const Text(
+                          "일정참가",
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
