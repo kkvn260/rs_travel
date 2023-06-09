@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:rs_travel/screens/main_screen.dart';
 import 'package:rs_travel/screens/main_trip_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); //비동기 사용 시
+  await initializeDateFormatting();
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
