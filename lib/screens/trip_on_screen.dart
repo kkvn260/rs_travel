@@ -12,11 +12,13 @@ class _TripOnState extends State<TripOn> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        child: TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('ㅇㅇ'),
+        child: Center(
+          child: TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('ㅇㅇ'),
+          ),
         ),
       ),
     );

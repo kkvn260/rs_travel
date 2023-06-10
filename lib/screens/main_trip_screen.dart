@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rs_travel/screens/create_trip_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MainTrip extends StatefulWidget {
   const MainTrip({super.key});
@@ -11,12 +12,14 @@ class MainTrip extends StatefulWidget {
 
 class _MainTripState extends State<MainTrip> {
   final _auth = FirebaseAuth.instance;
+  final _store = FirebaseFirestore.instance;
   User? nowUser;
 
   @override
   void initState() {
     super.initState();
     getNowUser();
+    getTripDate();
   }
 
   void getNowUser() {
@@ -27,6 +30,21 @@ class _MainTripState extends State<MainTrip> {
       }
     } catch (e) {
       print(e);
+    }
+  }
+
+  getTripDate() async {
+    var result = await _store.collection('trip').get();
+    for (int i = 0; i < result.size; i++) {
+      var name = result.docs.toList()[i].data()['name'];
+      var getUid = await _store
+          .collection('trip')
+          .doc(name)
+          .collection('group')
+          .doc('uid')
+          .get();
+      var uid = getUid.data()!['user'];
+      print('$name/$uid');
     }
   }
 
@@ -73,6 +91,7 @@ class _MainTripState extends State<MainTrip> {
             child: Container(
               width: MediaQuery.of(context).size.width,
               margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 4,
@@ -80,7 +99,23 @@ class _MainTripState extends State<MainTrip> {
                 borderRadius: BorderRadius.circular(15),
                 color: Colors.white,
               ),
-              child: const Text('최근일정'),
+              child: Column(
+                children: [
+                  const Text(
+                    '최근일정',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 5),
+                    height: 4,
+                    color: Colors.black,
+                  ),
+                  // ListView(),
+                ],
+              ),
             ),
           ),
           //하단
@@ -137,7 +172,7 @@ class _MainTripState extends State<MainTrip> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      print('2');
+                      getTripDate();
                     },
                     child: Container(
                       width: MediaQuery.of(context).size.width / 2 - 15,

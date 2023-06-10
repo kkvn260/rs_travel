@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rs_travel/config/calendar_dialog.dart';
 import 'package:rs_travel/screens/trip_on_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateTrip extends StatefulWidget {
   const CreateTrip({super.key});
@@ -14,7 +16,6 @@ class _CreateTripState extends State<CreateTrip> {
   DateTime? endDate;
   bool isDate = false;
   bool isDate2 = false;
-  bool isHover = false;
   bool formCk = false;
 
   String tripName = '';
@@ -41,7 +42,42 @@ class _CreateTripState extends State<CreateTrip> {
     });
   }
 
-  _createTrip() {}
+  void _createTrip() async {
+    Duration d = endDate!.difference(startDate!);
+    int days = 0;
+    if (d.inDays == 0) {
+      days = 1;
+    } else {
+      days = d.inDays;
+    }
+    final user = FirebaseAuth.instance.currentUser;
+    await FirebaseFirestore.instance.collection('trip').doc(tripName).set({
+      'time': Timestamp.now(),
+      'name': tripName,
+      'owner': user!.uid,
+      'start': startDate,
+      'end': endDate,
+      'day': days,
+    });
+    await FirebaseFirestore.instance
+        .collection('trip')
+        .doc(tripName)
+        .collection('group')
+        .doc('uid')
+        .set({
+      'user': user.uid,
+    });
+    for (int i = 0; i < days; i++) {
+      await FirebaseFirestore.instance
+          .collection('trip')
+          .doc(tripName)
+          .collection('day$i')
+          .doc('day$i')
+          .set({
+        'plan': 'plan',
+      });
+    }
+  }
 
   void formCheck() {
     var error = false;
@@ -49,6 +85,7 @@ class _CreateTripState extends State<CreateTrip> {
       if (startDate!.microsecondsSinceEpoch <=
           endDate!.microsecondsSinceEpoch) {
         formCk = true;
+        _createTrip();
       } else {
         error = true;
       }
@@ -238,14 +275,13 @@ class _CreateTripState extends State<CreateTrip> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     FilledButton(
-                      style: ButtonStyle(
+                      style: const ButtonStyle(
                         backgroundColor: MaterialStatePropertyAll(
-                          isHover ? Colors.orange : Colors.blue,
+                          Colors.orange,
                         ),
                       ),
                       onPressed: () {
                         formCheck();
-                        _createTrip();
                       },
                       child: const Text(
                         '완료',
