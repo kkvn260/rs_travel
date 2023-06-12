@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class TripOn extends StatefulWidget {
-  const TripOn({super.key});
+  const TripOn({
+    super.key,
+    required this.tripName,
+  });
+
+  final String tripName;
 
   @override
   State<TripOn> createState() => _TripOnState();
@@ -17,7 +22,7 @@ class _TripOnState extends State<TripOn> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('ㅇㅇ'),
+            child: Text(widget.tripName),
           ),
         ),
       ),

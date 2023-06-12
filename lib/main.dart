@@ -7,7 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); //비동기 사용 시
-  await initializeDateFormatting();
+  await initializeDateFormatting(); //달력 언어
   await Firebase.initializeApp();
   runApp(const MyApp());
 }

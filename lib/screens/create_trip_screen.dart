@@ -45,11 +45,7 @@ class _CreateTripState extends State<CreateTrip> {
   void _createTrip() async {
     Duration d = endDate!.difference(startDate!);
     int days = 0;
-    if (d.inDays == 0) {
-      days = 1;
-    } else {
-      days = d.inDays;
-    }
+    days = d.inDays;
     final user = FirebaseAuth.instance.currentUser;
     await FirebaseFirestore.instance.collection('trip').doc(tripName).set({
       'time': Timestamp.now(),
@@ -67,7 +63,7 @@ class _CreateTripState extends State<CreateTrip> {
         .set({
       'user': user.uid,
     });
-    for (int i = 0; i < days; i++) {
+    for (int i = 0; i < days + 1; i++) {
       await FirebaseFirestore.instance
           .collection('trip')
           .doc(tripName)
@@ -97,7 +93,9 @@ class _CreateTripState extends State<CreateTrip> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const TripOn(),
+          builder: (context) => TripOn(
+            tripName: tripName,
+          ),
         ),
       );
     } else {
