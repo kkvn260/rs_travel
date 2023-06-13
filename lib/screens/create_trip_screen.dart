@@ -17,7 +17,8 @@ class _CreateTripState extends State<CreateTrip> {
   bool isDate = false;
   bool isDate2 = false;
   bool formCk = false;
-
+  final _store = FirebaseFirestore.instance;
+  dynamic id;
   String tripName = '';
 
   Future getStartDate() async {
@@ -47,7 +48,7 @@ class _CreateTripState extends State<CreateTrip> {
     int days = 0;
     days = d.inDays;
     final user = FirebaseAuth.instance.currentUser;
-    await FirebaseFirestore.instance.collection('trip').doc(tripName).set({
+    await FirebaseFirestore.instance.collection('trip').doc().set({
       'time': Timestamp.now(),
       'name': tripName,
       'owner': user!.uid,
@@ -55,9 +56,17 @@ class _CreateTripState extends State<CreateTrip> {
       'end': endDate,
       'day': days,
     });
+    var result = await _store.collection('trip').get();
+    for (int i = 0; i < result.size; i++) {
+      var name = result.docs.toList()[i].data()['name'];
+      if (tripName == name) {
+        id = result.docs.toList()[i].id;
+      }
+    }
+
     await FirebaseFirestore.instance
         .collection('trip')
-        .doc(tripName)
+        .doc(id)
         .collection('group')
         .doc('uid')
         .set({
@@ -66,7 +75,7 @@ class _CreateTripState extends State<CreateTrip> {
     for (int i = 0; i < days + 1; i++) {
       await FirebaseFirestore.instance
           .collection('trip')
-          .doc(tripName)
+          .doc(id)
           .collection('day$i')
           .doc('day$i')
           .set({
@@ -94,7 +103,7 @@ class _CreateTripState extends State<CreateTrip> {
         context,
         MaterialPageRoute(
           builder: (context) => TripOn(
-            tripName: tripName,
+            tripName: id,
           ),
         ),
       );
