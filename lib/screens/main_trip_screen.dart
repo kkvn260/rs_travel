@@ -42,20 +42,19 @@ class _MainTripState extends State<MainTrip> {
 
   getTripDate() async {
     var result = await _store.collection('trip').get();
+
     for (int i = 0; i < result.size; i++) {
       id = result.docs.toList()[i].id;
-      var getUid = await _store
-          .collection('trip')
-          .doc(id)
-          .collection('group')
-          .doc('uid')
-          .get();
       var getName = await _store.collection('trip').doc(id).get();
       var name = getName.data()!['name'];
-      var uid = getUid.data()!['user'];
-      if (uid == nowUser!.uid) {
-        tripList.add(name);
-        tripId.add(id);
+      var getUid =
+          await _store.collection('trip').doc(id).collection('group').get();
+      for (int j = 0; j < getUid.size; j++) {
+        var uid = getUid.docs.toList()[j].data()['user'];
+        if (uid == nowUser!.uid) {
+          tripList.add(name);
+          tripId.add(id);
+        }
       }
     }
     setState(() {
@@ -223,6 +222,7 @@ class _MainTripState extends State<MainTrip> {
                           ).then((value) {
                             setState(() {
                               tripList.clear();
+                              tripId.clear();
                               working = true;
                               getTripDate();
                             });

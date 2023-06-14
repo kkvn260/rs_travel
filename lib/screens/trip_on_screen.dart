@@ -23,9 +23,13 @@ class _TripOnState extends State<TripOn> {
   bool loading = true;
   bool owner = false;
   List<bool> btCk = List.empty(growable: true);
-  String activeDay = '';
+  List<bool> btCk2 = List.empty(growable: true);
+  String activeDay = 'Day1';
   User? nowUser;
   String uid = '';
+  String tripName = '';
+  int addPlanDay = 0;
+  String _plan = '';
 
   @override
   void initState() {
@@ -40,9 +44,19 @@ class _TripOnState extends State<TripOn> {
       nowUser = user;
     }
     uid = data.data()!['owner'];
+    tripName = data.data()!['name'];
     Timestamp tt1 = data.data()!['start'];
     Timestamp tt2 = data.data()!['end'];
     dayNum = data.data()!['day'] + 1;
+    for (int i = 0; i < dayNum; i++) {
+      if (i == 0) {
+        btCk.add(true);
+        btCk2.add(false);
+      } else {
+        btCk.add(false);
+        btCk2.add(false);
+      }
+    }
     startDay = tt1.toDate();
     endDay = tt2.toDate();
     setState(() {
@@ -58,10 +72,35 @@ class _TripOnState extends State<TripOn> {
         .collection('day$d')
         .doc()
         .get();
-    // data.data()!['plan'];
     setState(() {
       activeDay = 'Day${d + 1}';
     });
+  }
+
+  void addPlan(int addDay, String plan) async {
+    await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('day$addDay')
+        .doc()
+        .set({
+      'plan': plan,
+      'time': Timestamp.now(),
+    });
+  }
+
+  void activeBt(int now) {
+    btCk.setAll(0, btCk2);
+    btCk[now] = true;
+    setState(() {});
+  }
+
+  bool nowDay(int now) {
+    if (btCk[now]) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -96,9 +135,9 @@ class _TripOnState extends State<TripOn> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    '여행 일정',
-                    style: TextStyle(
+                  Text(
+                    tripName,
+                    style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
                     ),
@@ -111,10 +150,17 @@ class _TripOnState extends State<TripOn> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      const Text(
+                        '여행 일정 : ',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text(
                         '${startDay?.year}.${startDay?.month}.${startDay?.day}',
                         style: const TextStyle(
-                          fontSize: 25,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -128,7 +174,7 @@ class _TripOnState extends State<TripOn> {
                       Text(
                         '${endDay?.year}.${endDay?.month}.${endDay?.day}',
                         style: const TextStyle(
-                          fontSize: 25,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -152,11 +198,17 @@ class _TripOnState extends State<TripOn> {
                           margin: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(35),
-                            color: Colors.blue[300],
+                            color: nowDay(index)
+                                ? Colors.orange
+                                : Colors.blue[300],
                           ),
                           child: TextButton(
                             onPressed: () {
                               getPlanData(index);
+                              setState(() {
+                                activeBt(index);
+                                addPlanDay = index;
+                              });
                             },
                             child: Text(
                               'Day${index + 1}',
@@ -183,11 +235,147 @@ class _TripOnState extends State<TripOn> {
               height: 10,
             ),
             //Plan
-            Container(
-              padding: const EdgeInsets.all(10),
-              child: Text(activeDay),
+            StreamBuilder(
+              stream: _store
+                  .collection('trip')
+                  .doc(widget.tripName)
+                  .collection('day$addPlanDay')
+                  .orderBy('time', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                final planDocs = snapshot.data!.docs;
+                return Expanded(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    padding: const EdgeInsets.all(10),
+                    child: ListView.builder(
+                      itemCount: planDocs.length,
+                      itemBuilder: (context, index) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 1.7,
+                              child: Text(
+                                ' - ${planDocs[index]['plan']}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: Icon(
+                                      owner ? Icons.delete : null,
+                                      size: 25,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.thumb_up,
+                                      size: 25,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.thumb_down,
+                                      size: 25,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
           ],
+        ),
+      ),
+      //일정추가
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue[300],
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: IconButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text(
+                    '일정 추가',
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  actions: [
+                    FilledButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        addPlan(addPlanDay, _plan);
+                      },
+                      child: const Text('확인'),
+                    ),
+                    FilledButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.grey),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('취소'),
+                    ),
+                  ],
+                  content: Container(
+                    padding: const EdgeInsets.all(5),
+                    height: 90,
+                    width: 300,
+                    child: TextField(
+                      style: const TextStyle(
+                        fontSize: 25,
+                      ),
+                      decoration: const InputDecoration(
+                        label: Text(
+                          '내용을 입력해주세요.',
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _plan = value;
+                        });
+                      },
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+          icon: const Icon(Icons.add),
+          color: Colors.white,
         ),
       ),
     );
