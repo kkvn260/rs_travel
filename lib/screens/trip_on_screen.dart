@@ -24,6 +24,7 @@ class _TripOnState extends State<TripOn> {
   bool owner = false;
   List<bool> btCk = List.empty(growable: true);
   List<bool> btCk2 = List.empty(growable: true);
+  List<bool> userCk = List.empty(growable: true);
   String activeDay = 'Day1';
   User? nowUser;
   String uid = '';
@@ -59,6 +60,7 @@ class _TripOnState extends State<TripOn> {
     }
     startDay = tt1.toDate();
     endDay = tt2.toDate();
+
     setState(() {
       loading = false;
       if (nowUser?.uid == uid) owner = true;
@@ -85,6 +87,7 @@ class _TripOnState extends State<TripOn> {
         .doc()
         .set({
       'plan': plan,
+      'user': nowUser?.uid,
       'time': Timestamp.now(),
     });
   }
@@ -103,13 +106,128 @@ class _TripOnState extends State<TripOn> {
     }
   }
 
+  void likePlan(String id) async {
+    var data = await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('day$addPlanDay')
+        .doc(id)
+        .collection("like")
+        .get();
+    if (data.docs.isNotEmpty) {
+      for (int i = 0; i < data.docs.length; i++) {
+        var user = data.docs.toList()[i].data()['user'];
+        if (user == nowUser?.uid) {
+          var id2 = data.docs.toList()[i].id;
+          await _store
+              .collection('trip')
+              .doc(widget.tripName)
+              .collection('day$addPlanDay')
+              .doc(id)
+              .collection("like")
+              .doc(id2)
+              .delete();
+        }
+      }
+    } else {
+      await _store
+          .collection('trip')
+          .doc(widget.tripName)
+          .collection('day$addPlanDay')
+          .doc(id)
+          .collection("like")
+          .doc()
+          .set({
+        'user': nowUser?.uid,
+      });
+    }
+  }
+
+  void dislikePlan(String id) async {
+    var data = await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('day$addPlanDay')
+        .doc(id)
+        .collection("dislike")
+        .get();
+    if (data.docs.isNotEmpty) {
+      for (int i = 0; i < data.docs.length; i++) {
+        var user = data.docs.toList()[i].data()['user'];
+        if (user == nowUser?.uid) {
+          var id2 = data.docs.toList()[i].id;
+          await _store
+              .collection('trip')
+              .doc(widget.tripName)
+              .collection('day$addPlanDay')
+              .doc(id)
+              .collection("dislike")
+              .doc(id2)
+              .delete();
+        }
+      }
+    } else {
+      await _store
+          .collection('trip')
+          .doc(widget.tripName)
+          .collection('day$addPlanDay')
+          .doc(id)
+          .collection("dislike")
+          .doc()
+          .set({
+        'user': nowUser?.uid,
+      });
+    }
+  }
+
+  void delPlan(int index, String id) async {
+    var data = await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('day$addPlanDay')
+        .doc(id)
+        .get();
+    var user = data.data()!['user'];
+    if (user == nowUser?.uid) {
+      await _store
+          .collection('trip')
+          .doc(widget.tripName)
+          .collection('day$addPlanDay')
+          .doc(id)
+          .delete();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('일정 공유'),
+                    content: Container(
+                      padding: const EdgeInsets.all(10),
+                      width: MediaQuery.of(context).size.width,
+                      height: 150,
+                      child: Column(
+                        children: [
+                          const Text('아래 정보를 복사해서\n일정을 공유해보세요!'),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Text(widget.tripName),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
             icon: const Icon(Icons.share),
           ),
           IconButton(
@@ -256,6 +374,11 @@ class _TripOnState extends State<TripOn> {
                     child: ListView.builder(
                       itemCount: planDocs.length,
                       itemBuilder: (context, index) {
+                        bool d = false;
+                        if (nowUser?.uid ==
+                            planDocs.toList()[index].data()['user']) {
+                          d = true;
+                        }
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -273,29 +396,107 @@ class _TripOnState extends State<TripOn> {
                               child: Row(
                                 children: [
                                   IconButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      delPlan(
+                                          index, planDocs.toList()[index].id);
+                                    },
                                     icon: Icon(
                                       owner ? Icons.delete : null,
                                       size: 25,
-                                      color: Colors.grey,
+                                      color: d ? Colors.black : Colors.white,
                                     ),
                                   ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                      Icons.thumb_up,
-                                      size: 25,
-                                      color: Colors.blue,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                      Icons.thumb_down,
-                                      size: 25,
-                                      color: Colors.red,
-                                    ),
-                                  ),
+                                  StreamBuilder(
+                                      stream: _store
+                                          .collection('trip')
+                                          .doc(widget.tripName)
+                                          .collection('day$addPlanDay')
+                                          .doc(planDocs.toList()[index].id)
+                                          .collection('like')
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        int likeNum = 0;
+                                        bool d = false;
+                                        if (snapshot.hasData) {
+                                          int size = snapshot.data!.docs
+                                              .toList()
+                                              .length;
+                                          likeNum = snapshot.data!.docs.length;
+                                          for (int i = 0; i < size; i++) {
+                                            if (snapshot.data!.docs
+                                                    .toList()[i]
+                                                    .data()['user'] ==
+                                                nowUser?.uid) {
+                                              d = true;
+                                            }
+                                          }
+                                        }
+                                        return Column(
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {
+                                                likePlan(planDocs
+                                                    .toList()[index]
+                                                    .id);
+                                              },
+                                              icon: Icon(
+                                                Icons.thumb_up,
+                                                size: 25,
+                                                color: d
+                                                    ? Colors.blue
+                                                    : Colors.grey,
+                                              ),
+                                            ),
+                                            Text('$likeNum'),
+                                          ],
+                                        );
+                                      }),
+                                  StreamBuilder(
+                                      stream: _store
+                                          .collection('trip')
+                                          .doc(widget.tripName)
+                                          .collection('day$addPlanDay')
+                                          .doc(planDocs.toList()[index].id)
+                                          .collection('dislike')
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        int dislikeNum = 0;
+                                        bool d = false;
+                                        if (snapshot.hasData) {
+                                          int size = snapshot.data!.docs
+                                              .toList()
+                                              .length;
+                                          dislikeNum =
+                                              snapshot.data!.docs.length;
+                                          for (int i = 0; i < size; i++) {
+                                            if (snapshot.data!.docs
+                                                    .toList()[i]
+                                                    .data()['user'] ==
+                                                nowUser?.uid) {
+                                              d = true;
+                                            }
+                                          }
+                                        }
+                                        return Column(
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {
+                                                dislikePlan(planDocs
+                                                    .toList()[index]
+                                                    .id);
+                                              },
+                                              icon: Icon(
+                                                Icons.thumb_down,
+                                                size: 25,
+                                                color: d
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                              ),
+                                            ),
+                                            Text('$dislikeNum'),
+                                          ],
+                                        );
+                                      }),
                                 ],
                               ),
                             ),
