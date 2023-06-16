@@ -21,12 +21,22 @@ class _MainTripState extends State<MainTrip> {
   List<String> tripId = List.empty(growable: true);
   var today = DateTime.now();
   dynamic id;
+  String tripCode = '';
 
   @override
   void initState() {
     super.initState();
     getNowUser();
     getTripDate();
+  }
+
+  void refresh() {
+    setState(() {
+      tripList.clear();
+      tripId.clear();
+      working = true;
+      getTripDate();
+    });
   }
 
   void getNowUser() {
@@ -59,6 +69,12 @@ class _MainTripState extends State<MainTrip> {
     }
     setState(() {
       working = false;
+    });
+  }
+
+  void joinTrip(String code) async {
+    await _store.collection('trip').doc(code).collection('group').doc().set({
+      'user': nowUser?.uid,
     });
   }
 
@@ -104,26 +120,28 @@ class _MainTripState extends State<MainTrip> {
                   width: MediaQuery.of(context).size.width,
                   margin: const EdgeInsets.all(10),
                   padding: const EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Today',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Today',
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        '${today.year}.${today.month}.${today.day}',
-                        style: const TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(
+                          height: 20,
                         ),
-                      ),
-                    ],
+                        Text(
+                          '${today.year}.${today.month}.${today.day}',
+                          style: const TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -190,7 +208,9 @@ class _MainTripState extends State<MainTrip> {
                                           builder: (context) =>
                                               TripOn(tripName: tripId[index]),
                                         ),
-                                      );
+                                      ).then((value) {
+                                        refresh();
+                                      });
                                     },
                                     icon: const Icon(Icons.arrow_forward),
                                   ),
@@ -220,12 +240,7 @@ class _MainTripState extends State<MainTrip> {
                               builder: (context) => const CreateTrip(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              tripList.clear();
-                              tripId.clear();
-                              working = true;
-                              getTripDate();
-                            });
+                            refresh();
                           });
                         },
                         child: Container(
@@ -242,29 +257,31 @@ class _MainTripState extends State<MainTrip> {
                               ),
                             ],
                           ),
-                          child: Column(
-                            children: [
-                              Transform.scale(
-                                scale: 2,
-                                child: Transform.translate(
-                                  offset: const Offset(-15, 10),
-                                  child: const Icon(
-                                    Icons.add,
-                                    size: 30,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Transform.scale(
+                                  scale: 2,
+                                  child: Transform.translate(
+                                    offset: const Offset(-15, 10),
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 30,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(
-                                height: 30,
-                              ),
-                              const Text(
-                                "일정생성",
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(
+                                  height: 30,
                                 ),
-                              ),
-                            ],
+                                const Text(
+                                  "일정생성",
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -273,7 +290,55 @@ class _MainTripState extends State<MainTrip> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          getTripDate();
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text(
+                                  '일정 참가',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                content: TextField(
+                                  onChanged: (value) {
+                                    tripCode = value;
+                                  },
+                                  decoration: const InputDecoration(
+                                    label: Text('참가 코드'),
+                                  ),
+                                ),
+                                actions: [
+                                  FilledButton(
+                                    onPressed: () {
+                                      joinTrip(tripCode);
+                                      Navigator.pop(context);
+                                      setState(() {
+                                        tripList.clear();
+                                        tripId.clear();
+                                        working = true;
+                                        getTripDate();
+                                      });
+                                    },
+                                    child: const Text('확인'),
+                                  ),
+                                  FilledButton(
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all(
+                                              Colors.grey),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('취소'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
                         child: Container(
                           width: MediaQuery.of(context).size.width / 3,
@@ -289,29 +354,31 @@ class _MainTripState extends State<MainTrip> {
                               ),
                             ],
                           ),
-                          child: Column(
-                            children: [
-                              Transform.scale(
-                                scale: 2,
-                                child: Transform.translate(
-                                  offset: const Offset(-15, 10),
-                                  child: const Icon(
-                                    Icons.search,
-                                    size: 30,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Transform.scale(
+                                  scale: 2,
+                                  child: Transform.translate(
+                                    offset: const Offset(-15, 10),
+                                    child: const Icon(
+                                      Icons.search,
+                                      size: 30,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(
-                                height: 30,
-                              ),
-                              const Text(
-                                "일정참가",
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(
+                                  height: 30,
                                 ),
-                              ),
-                            ],
+                                const Text(
+                                  "일정참가",
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

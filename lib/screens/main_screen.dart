@@ -190,8 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Icons.email_rounded,
                                           color: Palette.iconColor,
                                         ),
-                                        label: const Text('Email'),
-                                        hintText: "이메일",
+                                        label: const Text('이메일'),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(25),
@@ -229,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Icons.password,
                                           color: Palette.iconColor,
                                         ),
-                                        hintText: "비밀번호",
+                                        label: const Text('비밀번호'),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(25),
@@ -276,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Icons.account_circle,
                                           color: Palette.iconColor,
                                         ),
-                                        hintText: "닉네임",
+                                        label: const Text('닉네임'),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(25),
@@ -311,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Icons.email_rounded,
                                           color: Palette.iconColor,
                                         ),
-                                        hintText: "이메일",
+                                        label: const Text('이메일'),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(25),
@@ -349,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Icons.password,
                                           color: Palette.iconColor,
                                         ),
-                                        hintText: "비밀번호",
+                                        label: const Text('비밀번호'),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(25),

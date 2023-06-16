@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -31,6 +32,7 @@ class _TripOnState extends State<TripOn> {
   String tripName = '';
   int addPlanDay = 0;
   String _plan = '';
+  String tripId = '';
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _TripOnState extends State<TripOn> {
   }
 
   void getData() async {
+    tripId = widget.tripName;
     var data = await _store.collection('trip').doc(widget.tripName).get();
     var user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -68,7 +71,7 @@ class _TripOnState extends State<TripOn> {
   }
 
   void getPlanData(int d) async {
-    var data = await _store
+    await _store
         .collection('trip')
         .doc(widget.tripName)
         .collection('day$d')
@@ -106,78 +109,50 @@ class _TripOnState extends State<TripOn> {
     }
   }
 
-  void likePlan(String id) async {
+  void likePlan(String id, bool yn) async {
+    bool isMe = false;
+    String id2 = '';
     var data = await _store
         .collection('trip')
         .doc(widget.tripName)
         .collection('day$addPlanDay')
         .doc(id)
-        .collection("like")
+        .collection(yn ? "like" : 'dislike')
         .get();
     if (data.docs.isNotEmpty) {
       for (int i = 0; i < data.docs.length; i++) {
         var user = data.docs.toList()[i].data()['user'];
         if (user == nowUser?.uid) {
-          var id2 = data.docs.toList()[i].id;
-          await _store
-              .collection('trip')
-              .doc(widget.tripName)
-              .collection('day$addPlanDay')
-              .doc(id)
-              .collection("like")
-              .doc(id2)
-              .delete();
+          id2 = data.docs.toList()[i].id;
+          isMe = true;
+          break;
         }
       }
+    }
+    if (isMe) {
+      await _store
+          .collection('trip')
+          .doc(widget.tripName)
+          .collection('day$addPlanDay')
+          .doc(id)
+          .collection(yn ? "like" : 'dislike')
+          .doc(id2)
+          .delete();
     } else {
       await _store
           .collection('trip')
           .doc(widget.tripName)
           .collection('day$addPlanDay')
           .doc(id)
-          .collection("like")
+          .collection(yn ? "like" : 'dislike')
           .doc()
           .set({
         'user': nowUser?.uid,
       });
     }
-  }
-
-  void dislikePlan(String id) async {
-    var data = await _store
-        .collection('trip')
-        .doc(widget.tripName)
-        .collection('day$addPlanDay')
-        .doc(id)
-        .collection("dislike")
-        .get();
-    if (data.docs.isNotEmpty) {
-      for (int i = 0; i < data.docs.length; i++) {
-        var user = data.docs.toList()[i].data()['user'];
-        if (user == nowUser?.uid) {
-          var id2 = data.docs.toList()[i].id;
-          await _store
-              .collection('trip')
-              .doc(widget.tripName)
-              .collection('day$addPlanDay')
-              .doc(id)
-              .collection("dislike")
-              .doc(id2)
-              .delete();
-        }
-      }
-    } else {
-      await _store
-          .collection('trip')
-          .doc(widget.tripName)
-          .collection('day$addPlanDay')
-          .doc(id)
-          .collection("dislike")
-          .doc()
-          .set({
-        'user': nowUser?.uid,
-      });
-    }
+    setState(() {
+      loading = false;
+    });
   }
 
   void delPlan(int index, String id) async {
@@ -198,10 +173,86 @@ class _TripOnState extends State<TripOn> {
     }
   }
 
+  void delTrip() async {
+    var data = await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('group')
+        .get();
+    var dataNum = data.docs.toList().length;
+    for (int i = 0; i < dataNum; i++) {
+      await _store
+          .collection('trip')
+          .doc(widget.tripName)
+          .collection('group')
+          .doc(data.docs.toList()[i].id)
+          .delete();
+    }
+    for (int i = 0; i < dayNum; i++) {
+      var data = await _store
+          .collection('trip')
+          .doc(widget.tripName)
+          .collection('day$i')
+          .get();
+      if (data.size > 0) {
+        var dataNum = data.docs.toList().length;
+        for (int j = 0; j < dataNum; j++) {
+          await _store
+              .collection('trip')
+              .doc(widget.tripName)
+              .collection('day$i')
+              .doc(data.docs.toList()[i].id)
+              .delete();
+        }
+      }
+    }
+    await _store.collection('trip').doc(widget.tripName).delete();
+    goMenu();
+  }
+
+  void outTrip() async {
+    var data = await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('group')
+        .get();
+    var dataNum = data.docs.toList().length;
+    for (int i = 0; i < dataNum; i++) {
+      if (data.docs.toList()[i].data()['user'] == nowUser?.uid) {
+        await _store
+            .collection('trip')
+            .doc(widget.tripName)
+            .collection('group')
+            .doc(data.docs.toList()[i].id)
+            .delete();
+      }
+    }
+    goMenu();
+  }
+
+  void changeTripName(String name) async {
+    await _store.collection('trip').doc(widget.tripName).update({'name': name});
+    setState(() {
+      tripName = name;
+    });
+  }
+
+  void goMenu() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -209,18 +260,57 @@ class _TripOnState extends State<TripOn> {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text('일정 공유'),
+                    title: const Text(
+                      '일정 공유',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     content: Container(
                       padding: const EdgeInsets.all(10),
                       width: MediaQuery.of(context).size.width,
                       height: 150,
                       child: Column(
                         children: [
-                          const Text('아래 정보를 복사해서\n일정을 공유해보세요!'),
+                          const Text(
+                            '코드를 클릭하여 복사한뒤\n일정을 공유해보세요!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(
                             height: 20,
                           ),
-                          Text(widget.tripName),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              textStyle: const TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                            onPressed: () {
+                              Clipboard.setData(
+                                ClipboardData(
+                                  text: tripId,
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  duration: Duration(milliseconds: 1000),
+                                  content: Text(
+                                    '복사 완료.',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w200,
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.grey,
+                                ),
+                              );
+                            },
+                            child: Text(tripId),
+                          ),
                         ],
                       ),
                     ),
@@ -230,9 +320,187 @@ class _TripOnState extends State<TripOn> {
             },
             icon: const Icon(Icons.share),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.settings),
+          PopupMenuButton(
+            position: PopupMenuPosition.under,
+            enabled: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  child: owner
+                      ? TextButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    '일정 삭제',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    '정말 삭제하시겠습니까?',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  actions: [
+                                    FilledButton(
+                                      onPressed: () {
+                                        delTrip();
+                                      },
+                                      child: const Text('예'),
+                                    ),
+                                    FilledButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.grey),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('아니오'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Text(
+                            '일정 삭제',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : TextButton(
+                          //일정 나가기
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    '일정 나가기',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    '일정에서 나가시겠습니까?',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  actions: [
+                                    FilledButton(
+                                      onPressed: () {
+                                        outTrip();
+                                      },
+                                      child: const Text('예'),
+                                    ),
+                                    FilledButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.grey),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('아니오'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Text(
+                            '일정 나가기',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                ),
+                PopupMenuItem(
+                  child: owner
+                      ? TextButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                String cName = '';
+                                return AlertDialog(
+                                  title: const Text(
+                                    '일정 이름 변경',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.amber,
+                                    ),
+                                  ),
+                                  content: TextField(
+                                    decoration: const InputDecoration(
+                                      label: Text('변경할 이름'),
+                                    ),
+                                    onChanged: (value) => cName = value,
+                                  ),
+                                  actions: [
+                                    FilledButton(
+                                      onPressed: () {
+                                        changeTripName(cName);
+                                        Navigator.of(context).pop();
+                                        setState(() {});
+                                      },
+                                      child: const Text('확인'),
+                                    ),
+                                    FilledButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.grey),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('취소'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Text(
+                            '일정 이름 변경',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ];
+            },
           ),
         ],
       ),
@@ -435,9 +703,14 @@ class _TripOnState extends State<TripOn> {
                                           children: [
                                             IconButton(
                                               onPressed: () {
-                                                likePlan(planDocs
-                                                    .toList()[index]
-                                                    .id);
+                                                setState(() {
+                                                  loading = true;
+                                                  likePlan(
+                                                      planDocs
+                                                          .toList()[index]
+                                                          .id,
+                                                      true);
+                                                });
                                               },
                                               icon: Icon(
                                                 Icons.thumb_up,
@@ -481,9 +754,14 @@ class _TripOnState extends State<TripOn> {
                                           children: [
                                             IconButton(
                                               onPressed: () {
-                                                dislikePlan(planDocs
-                                                    .toList()[index]
-                                                    .id);
+                                                setState(() {
+                                                  loading = true;
+                                                  likePlan(
+                                                      planDocs
+                                                          .toList()[index]
+                                                          .id,
+                                                      false);
+                                                });
                                               },
                                               icon: Icon(
                                                 Icons.thumb_down,
