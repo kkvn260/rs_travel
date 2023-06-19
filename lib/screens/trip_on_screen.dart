@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rs_travel/plan/trip_plan.dart';
 
 class TripOn extends StatefulWidget {
   const TripOn({
@@ -11,6 +12,7 @@ class TripOn extends StatefulWidget {
   });
 
   final String tripName;
+  static bool loading = true;
 
   @override
   State<TripOn> createState() => _TripOnState();
@@ -35,6 +37,7 @@ class _TripOnState extends State<TripOn> {
   String tripId = '';
   var dayGroup = ['아침', '점심', '저녁'];
   String selGroup = '';
+  String nickName = '';
 
   @override
   void initState() {
@@ -43,11 +46,14 @@ class _TripOnState extends State<TripOn> {
   }
 
   void getData() async {
+    selGroup = dayGroup[0];
     tripId = widget.tripName;
     var data = await _store.collection('trip').doc(widget.tripName).get();
     var user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      var getNick = await _store.collection('user').doc(user.uid).get();
       nowUser = user;
+      nickName = getNick.data()!['userName'];
     }
     uid = data.data()!['owner'];
     tripName = data.data()!['name'];
@@ -67,7 +73,7 @@ class _TripOnState extends State<TripOn> {
     endDay = tt2.toDate();
 
     setState(() {
-      loading = false;
+      TripOn.loading = false;
       if (nowUser?.uid == uid) owner = true;
     });
   }
@@ -90,6 +96,8 @@ class _TripOnState extends State<TripOn> {
         .doc(widget.tripName)
         .collection('day$addDay')
         .doc(group)
+        .collection(group)
+        .doc()
         .set({
       'plan': plan,
       'user': nowUser?.uid,
@@ -525,300 +533,146 @@ class _TripOnState extends State<TripOn> {
         ],
       ),
       body: ModalProgressHUD(
-        inAsyncCall: loading,
-        child: Column(
-          children: [
-            //여행 일정
-            Container(
-              margin: const EdgeInsets.all(10),
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(
-                  width: 3,
-                  color: Colors.black,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    tripName,
-                    style: const TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Container(
-                    height: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 5),
+        inAsyncCall: TripOn.loading,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              //여행 일정
+              Container(
+                margin: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    width: 3,
                     color: Colors.black,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const Text(
-                        '여행 일정 : ',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      tripName,
+                      style: const TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        '${startDay?.year}.${startDay?.month}.${startDay?.day}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        '~',
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '${endDay?.year}.${endDay?.month}.${endDay?.day}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            //Day
-            Container(
-              height: 70,
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: dayNum,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(35),
-                            color: nowDay(index)
-                                ? Colors.orange
-                                : Colors.blue[300],
+                    ),
+                    Container(
+                      height: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      color: Colors.black,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        const Text(
+                          '여행 일정 : ',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
-                          child: TextButton(
-                            onPressed: () {
-                              getPlanData(index);
-                              setState(() {
-                                activeBt(index);
-                                addPlanDay = index;
-                              });
-                            },
-                            child: Text(
-                              'Day${index + 1}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                        ),
+                        Text(
+                          '${startDay?.year}.${startDay?.month}.${startDay?.day}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          '~',
+                          style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${endDay?.year}.${endDay?.month}.${endDay?.day}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              //Day
+              Container(
+                height: 70,
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: dayNum,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(35),
+                              color: nowDay(index)
+                                  ? Colors.orange
+                                  : Colors.blue[300],
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                getPlanData(index);
+                                setState(() {
+                                  activeBt(index);
+                                  addPlanDay = index;
+                                });
+                              },
+                              child: Text(
+                                'Day${index + 1}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              height: 2,
-              margin: const EdgeInsets.symmetric(horizontal: 15),
-              color: Colors.blue,
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            //Plan
-            StreamBuilder(
-              stream: _store
-                  .collection('trip')
-                  .doc(widget.tripName)
-                  .collection('day$addPlanDay')
-                  .orderBy('time', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                final planDocs = snapshot.data!.docs;
-                return ExpansionTile(
-                    title: const Text(
-                      '아침',
-                    ),
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height / 3,
-                        padding: const EdgeInsets.all(10),
-                        child: ListView.builder(
-                          itemCount: planDocs.length,
-                          itemBuilder: (context, index) {
-                            bool d = false;
-                            if (nowUser?.uid ==
-                                planDocs.toList()[index].data()['user']) {
-                              d = true;
-                            }
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width / 1.7,
-                                  child: Text(
-                                    ' - ${planDocs[index]['plan']}',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          delPlan(index,
-                                              planDocs.toList()[index].id);
-                                        },
-                                        icon: Icon(
-                                          owner ? Icons.delete : null,
-                                          size: 25,
-                                          color:
-                                              d ? Colors.black : Colors.white,
-                                        ),
-                                      ),
-                                      StreamBuilder(
-                                          stream: _store
-                                              .collection('trip')
-                                              .doc(widget.tripName)
-                                              .collection('day$addPlanDay')
-                                              .doc(planDocs.toList()[index].id)
-                                              .collection('like')
-                                              .snapshots(),
-                                          builder: (context, snapshot) {
-                                            int likeNum = 0;
-                                            bool d = false;
-                                            if (snapshot.hasData) {
-                                              int size = snapshot.data!.docs
-                                                  .toList()
-                                                  .length;
-                                              likeNum =
-                                                  snapshot.data!.docs.length;
-                                              for (int i = 0; i < size; i++) {
-                                                if (snapshot.data!.docs
-                                                        .toList()[i]
-                                                        .data()['user'] ==
-                                                    nowUser?.uid) {
-                                                  d = true;
-                                                }
-                                              }
-                                            }
-                                            return Column(
-                                              children: [
-                                                IconButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      loading = true;
-                                                      likePlan(
-                                                        planDocs
-                                                            .toList()[index]
-                                                            .id,
-                                                        true,
-                                                        likeNum,
-                                                      );
-                                                    });
-                                                  },
-                                                  icon: Icon(
-                                                    Icons.thumb_up,
-                                                    size: 25,
-                                                    color: d
-                                                        ? Colors.blue
-                                                        : Colors.grey,
-                                                  ),
-                                                ),
-                                                Text('$likeNum'),
-                                              ],
-                                            );
-                                          }),
-                                      StreamBuilder(
-                                          stream: _store
-                                              .collection('trip')
-                                              .doc(widget.tripName)
-                                              .collection('day$addPlanDay')
-                                              .doc(planDocs.toList()[index].id)
-                                              .collection('dislike')
-                                              .snapshots(),
-                                          builder: (context, snapshot) {
-                                            int dislikeNum = 0;
-                                            bool d = false;
-                                            if (snapshot.hasData) {
-                                              int size = snapshot.data!.docs
-                                                  .toList()
-                                                  .length;
-                                              dislikeNum =
-                                                  snapshot.data!.docs.length;
-                                              for (int i = 0; i < size; i++) {
-                                                if (snapshot.data!.docs
-                                                        .toList()[i]
-                                                        .data()['user'] ==
-                                                    nowUser?.uid) {
-                                                  d = true;
-                                                }
-                                              }
-                                            }
-                                            return Column(
-                                              children: [
-                                                IconButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      loading = true;
-                                                      likePlan(
-                                                        planDocs
-                                                            .toList()[index]
-                                                            .id,
-                                                        false,
-                                                        dislikeNum,
-                                                      );
-                                                    });
-                                                  },
-                                                  icon: Icon(
-                                                    Icons.thumb_down,
-                                                    size: 25,
-                                                    color: d
-                                                        ? Colors.red
-                                                        : Colors.grey,
-                                                  ),
-                                                ),
-                                                Text('$dislikeNum'),
-                                              ],
-                                            );
-                                          }),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                          );
+                        },
                       ),
-                    ]);
-              },
-            ),
-          ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 2,
+                margin: const EdgeInsets.symmetric(horizontal: 15),
+                color: Colors.blue,
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              //Plan
+              TripPlan(
+                tripName: widget.tripName,
+                addPlanDay: addPlanDay,
+                nowUser: nowUser,
+                owner: owner,
+                group: '아침',
+              ),
+              TripPlan(
+                tripName: widget.tripName,
+                addPlanDay: addPlanDay,
+                nowUser: nowUser,
+                owner: owner,
+                group: '점심',
+              ),
+              TripPlan(
+                tripName: widget.tripName,
+                addPlanDay: addPlanDay,
+                nowUser: nowUser,
+                owner: owner,
+                group: '저녁',
+              ),
+            ],
+          ),
         ),
       ),
       //일정추가
@@ -832,55 +686,70 @@ class _TripOnState extends State<TripOn> {
             showDialog(
               context: context,
               builder: (context) {
-                return AlertDialog(
-                  title: const Text(
-                    '일정 추가',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  actions: [
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        addPlan(addPlanDay, _plan, selGroup);
-                      },
-                      child: const Text('확인'),
-                    ),
-                    FilledButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.grey),
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    return AlertDialog(
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            child: DropdownButton(
+                              value: selGroup,
+                              items: dayGroup
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(
+                                        e,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selGroup = value!;
+                                });
+                              },
+                            ),
+                          ),
+                          const Text(
+                            '일정 추가',
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('취소'),
-                    ),
-                  ],
-                  content: Container(
-                    padding: const EdgeInsets.all(5),
-                    height: 90,
-                    width: 300,
-                    child: Column(
-                      children: [
-                        DropdownButton(
-                          value: dayGroup[0],
-                          items: dayGroup
-                              .map(
-                                (e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(e),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selGroup = value!;
-                            });
+                      actions: [
+                        FilledButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            addPlan(addPlanDay, _plan, selGroup);
                           },
+                          child: const Text('확인'),
                         ),
-                        TextField(
+                        FilledButton(
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.grey),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('취소'),
+                        ),
+                      ],
+                      content: Container(
+                        padding: const EdgeInsets.all(5),
+                        height: 90,
+                        width: 300,
+                        child: TextField(
                           style: const TextStyle(
                             fontSize: 25,
                           ),
@@ -898,9 +767,9 @@ class _TripOnState extends State<TripOn> {
                             });
                           },
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             );
