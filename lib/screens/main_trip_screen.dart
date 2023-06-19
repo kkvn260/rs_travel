@@ -22,6 +22,7 @@ class _MainTripState extends State<MainTrip> {
   var today = DateTime.now();
   dynamic id;
   String tripCode = '';
+  bool exist = false;
 
   @override
   void initState() {
@@ -73,9 +74,56 @@ class _MainTripState extends State<MainTrip> {
   }
 
   void joinTrip(String code) async {
-    await _store.collection('trip').doc(code).collection('group').doc().set({
-      'user': nowUser?.uid,
-    });
+    var trip = await _store.collection('trip').get();
+    int already = 0;
+    for (int i = 0; i < trip.docs.length; i++) {
+      if (trip.docs.toList()[i].id == code) {
+        var data =
+            await _store.collection('trip').doc(code).collection('group').get();
+        for (int j = 0; j < data.docs.length; j++) {
+          if (data.docs.toList()[j].data()['user'] == nowUser?.uid) {
+            already = 1;
+            break;
+          }
+        }
+        setState(() {
+          exist = true;
+        });
+      } else {
+        setState(() {
+          exist = false;
+        });
+      }
+    }
+    joinResult(already);
+  }
+
+  void joinResult(int a) {
+    if (a == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 1),
+          content: Text('이미 참여한 일정입니다.'),
+        ),
+      );
+      return;
+    }
+    if (exist) {
+      Navigator.pop(context);
+      setState(() {
+        tripList.clear();
+        tripId.clear();
+        working = true;
+        getTripDate();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 1),
+          content: Text('존재 하지 않는 일정입니다.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -259,6 +307,7 @@ class _MainTripState extends State<MainTrip> {
                           ),
                           child: SingleChildScrollView(
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Transform.scale(
                                   scale: 2,
@@ -314,13 +363,6 @@ class _MainTripState extends State<MainTrip> {
                                   FilledButton(
                                     onPressed: () {
                                       joinTrip(tripCode);
-                                      Navigator.pop(context);
-                                      setState(() {
-                                        tripList.clear();
-                                        tripId.clear();
-                                        working = true;
-                                        getTripDate();
-                                      });
                                     },
                                     child: const Text('확인'),
                                   ),
@@ -356,6 +398,7 @@ class _MainTripState extends State<MainTrip> {
                           ),
                           child: SingleChildScrollView(
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Transform.scale(
                                   scale: 2,
