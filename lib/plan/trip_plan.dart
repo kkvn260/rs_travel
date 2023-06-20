@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../screens/trip_on_screen.dart';
 
 class TripPlan extends StatefulWidget {
@@ -25,6 +25,7 @@ class TripPlan extends StatefulWidget {
 
 class _TripPlanState extends State<TripPlan> {
   final _store = FirebaseFirestore.instance;
+  bool expand = false;
 
   void likePlan(String id, bool yn, int ynNum) async {
     bool isMe = false;
@@ -90,25 +91,68 @@ class _TripPlanState extends State<TripPlan> {
   }
 
   void delPlan(int index, String id) async {
-    var data = await _store
+    var like = await _store
         .collection('trip')
         .doc(widget.tripName)
         .collection('day${widget.addPlanDay}')
         .doc(widget.group)
         .collection(widget.group)
         .doc(id)
+        .collection('like')
         .get();
-    var user = data.data()!['user'];
-    if (user == widget.nowUser?.uid) {
-      await _store
-          .collection('trip')
-          .doc(widget.tripName)
-          .collection('day${widget.addPlanDay}')
-          .doc(widget.group)
-          .collection(widget.group)
-          .doc(id)
-          .delete();
+    var like2 = await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('day${widget.addPlanDay}')
+        .doc(widget.group)
+        .collection(widget.group)
+        .doc(id)
+        .collection('dislike')
+        .get();
+    if (like.docs.toList().isNotEmpty) {
+      for (int i = 0; i < like.docs.length; i++) {
+        _store
+            .collection('trip')
+            .doc(widget.tripName)
+            .collection('day${widget.addPlanDay}')
+            .doc(widget.group)
+            .collection(widget.group)
+            .doc(id)
+            .collection('like')
+            .doc(like.docs.toList()[i].id)
+            .delete();
+      }
     }
+    if (like2.docs.toList().isNotEmpty) {
+      for (int j = 0; j < like2.docs.length; j++) {
+        _store
+            .collection('trip')
+            .doc(widget.tripName)
+            .collection('day${widget.addPlanDay}')
+            .doc(widget.group)
+            .collection(widget.group)
+            .doc(id)
+            .collection('dislike')
+            .doc(like2.docs.toList()[j].id)
+            .delete();
+      }
+    }
+
+    await _store
+        .collection('trip')
+        .doc(widget.tripName)
+        .collection('day${widget.addPlanDay}')
+        .doc(widget.group)
+        .collection(widget.group)
+        .doc(id)
+        .delete();
+  }
+
+  void goLink(String link) async {
+    var url = Uri.parse(link);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {}
   }
 
   @override
@@ -131,10 +175,13 @@ class _TripPlanState extends State<TripPlan> {
         final planDocs = snapshot.data!.docs;
         return SingleChildScrollView(
           child: ExpansionTile(
+            onExpansionChanged: (value) => expand = value,
+            initiallyExpanded: expand,
             title: Text(
               widget.group,
               style: const TextStyle(
-                fontSize: 16,
+                fontFamily: 'komi',
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -147,31 +194,60 @@ class _TripPlanState extends State<TripPlan> {
                   itemCount: planDocs.length,
                   itemBuilder: (context, index) {
                     bool d = false;
+                    bool link = false;
                     if (widget.nowUser?.uid == planDocs[index]['user']) {
                       d = true;
+                    }
+                    if (planDocs[index]['link'] != null) {
+                      link = true;
                     }
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         SizedBox(
                           width: MediaQuery.of(context).size.width / 1.7,
-                          child: Text(
-                            ' - ${planDocs[index]['plan']}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ' - ${planDocs[index]['plan']}',
+                                style: const TextStyle(
+                                  fontFamily: 'komi',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  if (link) {
+                                    goLink(planDocs[index]['link'].toString());
+                                  }
+                                },
+                                child: Text(
+                                  link ? '${planDocs[index]['link']}' : '',
+                                  style: const TextStyle(
+                                    fontFamily: 'komi',
+                                    fontSize: 15,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Row(
                           children: [
                             IconButton(
                               onPressed: () {
-                                delPlan(index, planDocs.toList()[index].id);
+                                d
+                                    ? delPlan(
+                                        index, planDocs.toList()[index].id)
+                                    : null;
                               },
                               icon: Icon(
-                                !d ? Icons.delete : null,
-                                size: 25,
+                                d ? Icons.delete : null,
+                                size: 20,
                                 color: Colors.black,
                               ),
                             ),
@@ -216,7 +292,7 @@ class _TripPlanState extends State<TripPlan> {
                                         },
                                         icon: Icon(
                                           Icons.thumb_up,
-                                          size: 25,
+                                          size: 20,
                                           color: d ? Colors.blue : Colors.grey,
                                         ),
                                       ),
@@ -265,7 +341,7 @@ class _TripPlanState extends State<TripPlan> {
                                         },
                                         icon: Icon(
                                           Icons.thumb_down,
-                                          size: 25,
+                                          size: 20,
                                           color: d ? Colors.red : Colors.grey,
                                         ),
                                       ),

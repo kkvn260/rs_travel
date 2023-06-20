@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
-  String userName = '';
+  // String userName = '';
   String userEmail = '';
   String userPassword = '';
   var loginTab = true;
@@ -77,9 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeIn,
-                  height: loginTab
-                      ? (MediaQuery.of(context).size.height / 2) - 80
-                      : (MediaQuery.of(context).size.height / 2) - 10,
+                  height: (MediaQuery.of(context).size.height / 2) - 80,
                   width: MediaQuery.of(context).size.width - 40,
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(12.0),
@@ -112,10 +110,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Text(
                                     "Login",
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       color: loginTab
                                           ? Palette.activeColor
                                           : Palette.textColor1,
-                                      fontSize: 20,
+                                      fontSize: 25,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -141,10 +140,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Text(
                                     "Signin",
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       color: !loginTab
                                           ? Palette.activeColor
                                           : Palette.textColor1,
-                                      fontSize: 20,
+                                      fontSize: 25,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -169,6 +169,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Column(
                                 children: [
                                   TextFormField(
+                                    style: const TextStyle(
+                                      fontFamily: 'komi',
+                                      fontSize: 20,
+                                    ),
                                     key: const ValueKey(1),
                                     onTap: () {
                                       setState(() {
@@ -204,6 +208,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 10,
                                   ),
                                   TextFormField(
+                                    style: const TextStyle(
+                                      fontFamily: 'komi',
+                                      fontSize: 20,
+                                    ),
                                     key: const ValueKey(2),
                                     obscureText: true,
                                     onTap: () {
@@ -251,44 +259,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Column(
                                 children: [
                                   TextFormField(
-                                    key: const ValueKey(3),
-                                    onTap: () {
-                                      setState(() {
-                                        keyBoardOn = true;
-                                      });
-                                    },
-                                    onSaved: (value) {
-                                      userName = value!;
-                                    },
-                                    onChanged: (value) {
-                                      userName = value;
-                                    },
-                                    validator: (value) {
-                                      if (value!.isEmpty || value.length < 2) {
-                                        return '닉네임은 2글자 이상 입력해주세요.';
-                                      }
-                                      return null;
-                                    },
-                                    keyboardType: TextInputType.text,
-                                    decoration: InputDecoration(
-                                        prefixIcon: Icon(
-                                          Icons.account_circle,
-                                          color: Palette.iconColor,
-                                        ),
-                                        label: const Text('닉네임'),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                        )),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
+                                    style: const TextStyle(
+                                      fontFamily: 'komi',
+                                      fontSize: 20,
+                                    ),
                                     key: const ValueKey(4),
                                     onTap: () {
                                       setState(() {
@@ -324,6 +298,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 10,
                                   ),
                                   TextFormField(
+                                    style: const TextStyle(
+                                      fontFamily: 'komi',
+                                      fontSize: 20,
+                                    ),
                                     obscureText: true,
                                     key: const ValueKey(5),
                                     onTap: () {
@@ -371,14 +349,8 @@ class _LoginScreenState extends State<LoginScreen> {
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn,
-                top: keyBoardOn
-                    ? loginTab
-                        ? MediaQuery.of(context).size.height / 8
-                        : MediaQuery.of(context).size.height / 4.5
-                    : null,
-                bottom: loginTab
-                    ? MediaQuery.of(context).size.height / 6
-                    : MediaQuery.of(context).size.height / 15,
+                top: keyBoardOn ? MediaQuery.of(context).size.height / 8 : null,
+                bottom: MediaQuery.of(context).size.height / 6,
                 left: 0,
                 right: 0,
                 child: Center(
@@ -419,7 +391,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 .collection('user')
                                 .doc(newUser.user!.uid)
                                 .set({
-                              'userName': userName,
                               'userEmail': userEmail,
                             });
                           }

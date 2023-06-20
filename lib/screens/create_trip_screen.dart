@@ -156,9 +156,9 @@ class _CreateTripState extends State<CreateTrip> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
                         '날짜 선택',
                         style: TextStyle(

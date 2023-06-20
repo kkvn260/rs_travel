@@ -130,14 +130,8 @@ class _MainTripState extends State<MainTrip> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[400],
+        // backgroundColor: Colors.grey[400],
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.settings,
-            ),
-          ),
           IconButton(
             onPressed: () {
               _auth.signOut();
@@ -174,8 +168,9 @@ class _MainTripState extends State<MainTrip> {
                         const Text(
                           'Today',
                           style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
+                            fontFamily: 'komi',
+                            fontSize: 35,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(
@@ -184,8 +179,9 @@ class _MainTripState extends State<MainTrip> {
                         Text(
                           '${today.year}.${today.month}.${today.day}',
                           style: const TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w500,
+                            fontFamily: 'komi',
+                            fontSize: 30,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -219,7 +215,8 @@ class _MainTripState extends State<MainTrip> {
                       const Text(
                         '참가한 일정',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontFamily: 'komi',
+                          fontSize: 25,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -243,8 +240,9 @@ class _MainTripState extends State<MainTrip> {
                                   Text(
                                     tripList[index],
                                     style: const TextStyle(
+                                      fontFamily: 'komi',
                                       color: Colors.black,
-                                      fontSize: 18,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -325,6 +323,7 @@ class _MainTripState extends State<MainTrip> {
                                 const Text(
                                   "일정생성",
                                   style: TextStyle(
+                                    fontFamily: 'komi',
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -347,6 +346,7 @@ class _MainTripState extends State<MainTrip> {
                                   '일정 참가',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
+                                    fontFamily: 'komi',
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -416,6 +416,7 @@ class _MainTripState extends State<MainTrip> {
                                 const Text(
                                   "일정참가",
                                   style: TextStyle(
+                                    fontFamily: 'komi',
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold,
                                   ),

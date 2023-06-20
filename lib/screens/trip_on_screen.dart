@@ -23,7 +23,6 @@ class _TripOnState extends State<TripOn> {
   int dayNum = 0;
   DateTime? startDay;
   DateTime? endDay;
-  bool loading = true;
   bool owner = false;
   List<bool> btCk = List.empty(growable: true);
   List<bool> btCk2 = List.empty(growable: true);
@@ -34,6 +33,7 @@ class _TripOnState extends State<TripOn> {
   String tripName = '';
   int addPlanDay = 0;
   String _plan = '';
+  String _link = '';
   String tripId = '';
   var dayGroup = ['아침', '점심', '저녁'];
   String selGroup = '';
@@ -90,7 +90,7 @@ class _TripOnState extends State<TripOn> {
     });
   }
 
-  void addPlan(int addDay, String plan, String group) async {
+  void addPlan(int addDay, String plan, String group, String link) async {
     await _store
         .collection('trip')
         .doc(widget.tripName)
@@ -104,6 +104,7 @@ class _TripOnState extends State<TripOn> {
       'time': Timestamp.now(),
       'like': 0,
       'dislike': 0,
+      'link': link,
     });
   }
 
@@ -118,79 +119,6 @@ class _TripOnState extends State<TripOn> {
       return true;
     } else {
       return false;
-    }
-  }
-
-  void likePlan(String id, bool yn, int ynNum) async {
-    bool isMe = false;
-    String id2 = '';
-    var data = await _store
-        .collection('trip')
-        .doc(widget.tripName)
-        .collection('day$addPlanDay')
-        .doc(id)
-        .collection(yn ? "like" : 'dislike')
-        .get();
-
-    var data2 = _store
-        .collection('trip')
-        .doc(widget.tripName)
-        .collection('day$addPlanDay')
-        .doc(id);
-
-    if (data.docs.isNotEmpty) {
-      for (int i = 0; i < data.docs.length; i++) {
-        var user = data.docs.toList()[i].data()['user'];
-        if (user == nowUser?.uid) {
-          id2 = data.docs.toList()[i].id;
-          isMe = true;
-          break;
-        }
-      }
-    }
-    if (isMe) {
-      await _store
-          .collection('trip')
-          .doc(widget.tripName)
-          .collection('day$addPlanDay')
-          .doc(id)
-          .collection(yn ? "like" : 'dislike')
-          .doc(id2)
-          .delete();
-      await data2.update(yn ? {'like': ynNum - 1} : {'dislike': ynNum - 1});
-    } else {
-      await _store
-          .collection('trip')
-          .doc(widget.tripName)
-          .collection('day$addPlanDay')
-          .doc(id)
-          .collection(yn ? "like" : 'dislike')
-          .doc()
-          .set({
-        'user': nowUser?.uid,
-      });
-      await data2.update(yn ? {'like': ynNum + 1} : {'dislike': ynNum + 1});
-    }
-    setState(() {
-      loading = false;
-    });
-  }
-
-  void delPlan(int index, String id) async {
-    var data = await _store
-        .collection('trip')
-        .doc(widget.tripName)
-        .collection('day$addPlanDay')
-        .doc(id)
-        .get();
-    var user = data.data()!['user'];
-    if (user == nowUser?.uid) {
-      await _store
-          .collection('trip')
-          .doc(widget.tripName)
-          .collection('day$addPlanDay')
-          .doc(id)
-          .delete();
     }
   }
 
@@ -209,27 +137,34 @@ class _TripOnState extends State<TripOn> {
           .doc(data.docs.toList()[i].id)
           .delete();
     }
-    for (int i = 0; i < dayNum; i++) {
-      var data = await _store
-          .collection('trip')
-          .doc(widget.tripName)
-          .collection('day$i')
-          .get();
-      if (data.size > 0) {
-        var dataNum = data.docs.toList().length;
-        for (int j = 0; j < dataNum; j++) {
-          await _store
-              .collection('trip')
-              .doc(widget.tripName)
-              .collection('day$i')
-              .doc(data.docs.toList()[i].id)
-              .delete();
+    for (int j = 0; j < 2; j++) {
+      var day = ['아침', '점심', '저녁'];
+      for (int i = 0; i < dayNum; i++) {
+        var data = await _store
+            .collection('trip')
+            .doc(widget.tripName)
+            .collection('day$i')
+            .doc(day[j])
+            .collection(day[j])
+            .get();
+        if (data.size > 0) {
+          var dataNum = data.docs.toList().length;
+          for (int k = 0; k < dataNum; k++) {
+            await _store
+                .collection('trip')
+                .doc(widget.tripName)
+                .collection('day$i')
+                .doc(day[j])
+                .collection(day[j])
+                .doc(data.docs.toList()[i].id)
+                .delete();
+          }
         }
       }
     }
     await _store.collection('trip').doc(widget.tripName).delete();
     setState(() {
-      loading = false;
+      TripOn.loading = false;
     });
     goMenu();
   }
@@ -287,6 +222,7 @@ class _TripOnState extends State<TripOn> {
                     title: const Text(
                       '일정 공유',
                       style: TextStyle(
+                        fontFamily: 'komi',
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -300,6 +236,7 @@ class _TripOnState extends State<TripOn> {
                             '코드를 클릭하여 복사한뒤\n일정을 공유해보세요!',
                             textAlign: TextAlign.center,
                             style: TextStyle(
+                              fontFamily: 'komi',
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                             ),
@@ -310,6 +247,7 @@ class _TripOnState extends State<TripOn> {
                           TextButton(
                             style: TextButton.styleFrom(
                               textStyle: const TextStyle(
+                                fontFamily: 'komi',
                                 fontSize: 20,
                               ),
                             ),
@@ -326,6 +264,7 @@ class _TripOnState extends State<TripOn> {
                                     '복사 완료.',
                                     style: TextStyle(
                                       fontSize: 17,
+                                      fontFamily: 'komi',
                                       fontWeight: FontWeight.w200,
                                     ),
                                   ),
@@ -364,6 +303,7 @@ class _TripOnState extends State<TripOn> {
                                     '일정 삭제',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       fontSize: 25,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.red,
@@ -373,6 +313,7 @@ class _TripOnState extends State<TripOn> {
                                     '정말 삭제하시겠습니까?',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -380,10 +321,10 @@ class _TripOnState extends State<TripOn> {
                                   actions: [
                                     FilledButton(
                                       onPressed: () {
-                                        Navigator.pop(context);
                                         setState(() {
-                                          loading = true;
+                                          TripOn.loading = true;
                                         });
+                                        Navigator.pop(context);
                                         delTrip();
                                       },
                                       child: const Text('예'),
@@ -407,6 +348,7 @@ class _TripOnState extends State<TripOn> {
                           child: const Text(
                             '일정 삭제',
                             style: TextStyle(
+                              fontFamily: 'komi',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -423,6 +365,7 @@ class _TripOnState extends State<TripOn> {
                                     '일정 나가기',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       fontSize: 25,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.red,
@@ -432,6 +375,7 @@ class _TripOnState extends State<TripOn> {
                                     '일정에서 나가시겠습니까?',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -462,6 +406,7 @@ class _TripOnState extends State<TripOn> {
                           child: const Text(
                             '일정 나가기',
                             style: TextStyle(
+                              fontFamily: 'komi',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -481,6 +426,7 @@ class _TripOnState extends State<TripOn> {
                                     '일정 이름 변경',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
+                                      fontFamily: 'komi',
                                       fontSize: 25,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.amber,
@@ -520,6 +466,7 @@ class _TripOnState extends State<TripOn> {
                           child: const Text(
                             '일정 이름 변경',
                             style: TextStyle(
+                              fontFamily: 'komi',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -553,6 +500,7 @@ class _TripOnState extends State<TripOn> {
                     Text(
                       tripName,
                       style: const TextStyle(
+                        fontFamily: 'komi',
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
                       ),
@@ -568,6 +516,7 @@ class _TripOnState extends State<TripOn> {
                         const Text(
                           '여행 일정 : ',
                           style: TextStyle(
+                            fontFamily: 'komi',
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -575,6 +524,7 @@ class _TripOnState extends State<TripOn> {
                         Text(
                           '${startDay?.year}.${startDay?.month}.${startDay?.day}',
                           style: const TextStyle(
+                            fontFamily: 'komi',
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -582,6 +532,7 @@ class _TripOnState extends State<TripOn> {
                         const Text(
                           '~',
                           style: TextStyle(
+                            fontFamily: 'komi',
                             fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
@@ -589,6 +540,7 @@ class _TripOnState extends State<TripOn> {
                         Text(
                           '${endDay?.year}.${endDay?.month}.${endDay?.day}',
                           style: const TextStyle(
+                            fontFamily: 'komi',
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -628,6 +580,7 @@ class _TripOnState extends State<TripOn> {
                               child: Text(
                                 'Day${index + 1}',
                                 style: const TextStyle(
+                                  fontFamily: 'komi',
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -703,6 +656,7 @@ class _TripOnState extends State<TripOn> {
                                       child: Text(
                                         e,
                                         style: const TextStyle(
+                                          fontFamily: 'komi',
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -720,6 +674,7 @@ class _TripOnState extends State<TripOn> {
                           const Text(
                             '일정 추가',
                             style: TextStyle(
+                              fontFamily: 'komi',
                               fontSize: 25,
                               fontWeight: FontWeight.bold,
                             ),
@@ -730,7 +685,7 @@ class _TripOnState extends State<TripOn> {
                         FilledButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            addPlan(addPlanDay, _plan, selGroup);
+                            addPlan(addPlanDay, _plan, selGroup, _link);
                           },
                           child: const Text('확인'),
                         ),
@@ -747,25 +702,54 @@ class _TripOnState extends State<TripOn> {
                       ],
                       content: Container(
                         padding: const EdgeInsets.all(5),
-                        height: 90,
+                        height: 200,
                         width: 300,
-                        child: TextField(
-                          style: const TextStyle(
-                            fontSize: 25,
-                          ),
-                          decoration: const InputDecoration(
-                            label: Text(
-                              '내용을 입력해주세요.',
-                              style: TextStyle(
-                                fontSize: 20,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                style: const TextStyle(
+                                  fontFamily: 'komi',
+                                  fontSize: 25,
+                                ),
+                                decoration: const InputDecoration(
+                                  label: Text(
+                                    '내용을 입력해주세요.',
+                                    style: TextStyle(
+                                      fontFamily: 'komi',
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _plan = value;
+                                  });
+                                },
                               ),
-                            ),
+                              TextField(
+                                style: const TextStyle(
+                                  fontFamily: 'komi',
+                                  fontSize: 20,
+                                ),
+                                decoration: const InputDecoration(
+                                  label: Text(
+                                    '링크 참조',
+                                    style: TextStyle(
+                                      fontFamily: 'komi',
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _link = value;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
-                          onChanged: (value) {
-                            setState(() {
-                              _plan = value;
-                            });
-                          },
                         ),
                       ),
                     );
