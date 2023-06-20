@@ -246,566 +246,577 @@ class _TripOnState extends State<TripOn> {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
+  Future<bool> onBack() async {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          icon: const Icon(
-            Icons.arrow_back,
-          ),
-        ),
-        actions: [
-          IconButton(
+    return WillPopScope(
+      onWillPop: () {
+        return onBack();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text(
-                      '일정 공유',
-                      style: TextStyle(
-                        fontFamily: 'komi',
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    content: Container(
-                      padding: const EdgeInsets.all(10),
-                      width: MediaQuery.of(context).size.width,
-                      height: 150,
-                      child: Column(
-                        children: [
-                          const Text(
-                            '코드를 클릭하여 복사한뒤\n일정을 공유해보세요!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'komi',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              textStyle: const TextStyle(
-                                fontFamily: 'komi',
-                                fontSize: 20,
-                              ),
-                            ),
-                            onPressed: () {
-                              Clipboard.setData(
-                                ClipboardData(
-                                  text: tripId,
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  duration: Duration(milliseconds: 1000),
-                                  content: Text(
-                                    '복사 완료.',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: 'komi',
-                                      fontWeight: FontWeight.w200,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.grey,
-                                ),
-                              );
-                            },
-                            child: Text(tripId),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
-            icon: const Icon(Icons.share),
-          ),
-          PopupMenuButton(
-            position: PopupMenuPosition.under,
-            enabled: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+            icon: const Icon(
+              Icons.arrow_back,
             ),
-            itemBuilder: (context) {
-              return [
-                PopupMenuItem(
-                  child: owner
-                      ? TextButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text(
-                                    '일정 삭제',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  content: const Text(
-                                    '정말 삭제하시겠습니까?',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  actions: [
-                                    FilledButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          TripOn.loading = true;
-                                        });
-                                        Navigator.pop(context);
-                                        delTrip();
-                                      },
-                                      child: const Text('예'),
-                                    ),
-                                    FilledButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.grey),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('아니오'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: const Text(
-                            '일정 삭제',
-                            style: TextStyle(
-                              fontFamily: 'komi',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : TextButton(
-                          //일정 나가기
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text(
-                                    '일정 나가기',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  content: const Text(
-                                    '일정에서 나가시겠습니까?',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  actions: [
-                                    FilledButton(
-                                      onPressed: () {
-                                        outTrip();
-                                      },
-                                      child: const Text('예'),
-                                    ),
-                                    FilledButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.grey),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('아니오'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: const Text(
-                            '일정 나가기',
-                            style: TextStyle(
-                              fontFamily: 'komi',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                ),
-                PopupMenuItem(
-                  child: owner
-                      ? TextButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                String cName = '';
-                                return AlertDialog(
-                                  title: const Text(
-                                    '일정 이름 변경',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
-                                  content: TextField(
-                                    decoration: const InputDecoration(
-                                      label: Text('변경할 이름'),
-                                    ),
-                                    onChanged: (value) => cName = value,
-                                  ),
-                                  actions: [
-                                    FilledButton(
-                                      onPressed: () {
-                                        changeTripName(cName);
-                                        Navigator.of(context).pop();
-                                        setState(() {});
-                                      },
-                                      child: const Text('확인'),
-                                    ),
-                                    FilledButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.grey),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('취소'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: const Text(
-                            '일정 이름 변경',
-                            style: TextStyle(
-                              fontFamily: 'komi',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-              ];
-            },
           ),
-        ],
-      ),
-      body: ModalProgressHUD(
-        inAsyncCall: TripOn.loading,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              //여행 일정
-              Container(
-                margin: const EdgeInsets.all(10),
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    width: 3,
-                    color: Colors.black,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      tripName,
-                      style: const TextStyle(
-                        fontFamily: 'komi',
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Container(
-                      height: 3,
-                      margin: const EdgeInsets.symmetric(vertical: 5),
-                      color: Colors.black,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        const Text(
-                          '여행 일정 : ',
-                          style: TextStyle(
-                            fontFamily: 'komi',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${startDay?.year}.${startDay?.month}.${startDay?.day}',
-                          style: const TextStyle(
-                            fontFamily: 'komi',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          '~',
-                          style: TextStyle(
-                            fontFamily: 'komi',
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${endDay?.year}.${endDay?.month}.${endDay?.day}',
-                          style: const TextStyle(
-                            fontFamily: 'komi',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              //Day
-              Container(
-                height: 70,
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: dayNum,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(35),
-                              color: nowDay(index)
-                                  ? Colors.orange
-                                  : Colors.blue[300],
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                getPlanData(index);
-                                setState(() {
-                                  activeBt(index);
-                                  addPlanDay = index;
-                                });
-                              },
-                              child: Text(
-                                'Day${index + 1}',
-                                style: const TextStyle(
-                                  fontFamily: 'komi',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                height: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 15),
-                color: Colors.blue,
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              //Plan
-              TripPlan(
-                tripName: widget.tripName,
-                addPlanDay: addPlanDay,
-                nowUser: nowUser,
-                owner: owner,
-                group: '아침',
-              ),
-              TripPlan(
-                tripName: widget.tripName,
-                addPlanDay: addPlanDay,
-                nowUser: nowUser,
-                owner: owner,
-                group: '점심',
-              ),
-              TripPlan(
-                tripName: widget.tripName,
-                addPlanDay: addPlanDay,
-                nowUser: nowUser,
-                owner: owner,
-                group: '저녁',
-              ),
-            ],
-          ),
-        ),
-      ),
-      //일정추가
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          color: Colors.blue[300],
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: IconButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return StatefulBuilder(
-                  builder: (context, setState) {
+          actions: [
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
                     return AlertDialog(
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(5),
-                            child: DropdownButton(
-                              value: selGroup,
-                              items: dayGroup
-                                  .map(
-                                    (e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(
-                                        e,
-                                        style: const TextStyle(
-                                          fontFamily: 'komi',
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  selGroup = value!;
-                                });
-                              },
-                            ),
-                          ),
-                          const Text(
-                            '일정 추가',
-                            style: TextStyle(
-                              fontFamily: 'komi',
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      title: const Text(
+                        '일정 공유',
+                        style: TextStyle(
+                          fontFamily: 'komi',
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      actions: [
-                        FilledButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            addPlan(addPlanDay, _plan, selGroup, _link);
-                          },
-                          child: const Text('확인'),
-                        ),
-                        FilledButton(
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.grey),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text('취소'),
-                        ),
-                      ],
                       content: Container(
-                        padding: const EdgeInsets.all(5),
-                        height: 200,
-                        width: 300,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              TextField(
-                                style: const TextStyle(
-                                  fontFamily: 'komi',
-                                  fontSize: 25,
-                                ),
-                                decoration: const InputDecoration(
-                                  label: Text(
-                                    '내용을 입력해주세요.',
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _plan = value;
-                                  });
-                                },
+                        padding: const EdgeInsets.all(10),
+                        width: MediaQuery.of(context).size.width,
+                        height: 150,
+                        child: Column(
+                          children: [
+                            const Text(
+                              '코드를 클릭하여 복사한뒤\n일정을 공유해보세요!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'komi',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
                               ),
-                              TextField(
-                                style: const TextStyle(
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                textStyle: const TextStyle(
                                   fontFamily: 'komi',
                                   fontSize: 20,
                                 ),
-                                decoration: const InputDecoration(
-                                  label: Text(
-                                    '링크 참조',
-                                    style: TextStyle(
-                                      fontFamily: 'komi',
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _link = value;
-                                  });
-                                },
                               ),
-                            ],
-                          ),
+                              onPressed: () {
+                                Clipboard.setData(
+                                  ClipboardData(
+                                    text: tripId,
+                                  ),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    duration: Duration(milliseconds: 1000),
+                                    content: Text(
+                                      '복사 완료.',
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontFamily: 'komi',
+                                        fontWeight: FontWeight.w200,
+                                      ),
+                                    ),
+                                    backgroundColor: Colors.grey,
+                                  ),
+                                );
+                              },
+                              child: Text(tripId),
+                            ),
+                          ],
                         ),
                       ),
                     );
                   },
                 );
               },
-            );
-          },
-          icon: const Icon(Icons.add),
-          color: Colors.white,
+              icon: const Icon(Icons.share),
+            ),
+            PopupMenuButton(
+              position: PopupMenuPosition.under,
+              enabled: true,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              itemBuilder: (context) {
+                return [
+                  PopupMenuItem(
+                    child: owner
+                        ? TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text(
+                                      '일정 삭제',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    content: const Text(
+                                      '정말 삭제하시겠습니까?',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    actions: [
+                                      FilledButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            TripOn.loading = true;
+                                          });
+                                          Navigator.pop(context);
+                                          delTrip();
+                                        },
+                                        child: const Text('예'),
+                                      ),
+                                      FilledButton(
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  Colors.grey),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('아니오'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text(
+                              '일정 삭제',
+                              style: TextStyle(
+                                fontFamily: 'komi',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : TextButton(
+                            //일정 나가기
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text(
+                                      '일정 나가기',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    content: const Text(
+                                      '일정에서 나가시겠습니까?',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    actions: [
+                                      FilledButton(
+                                        onPressed: () {
+                                          outTrip();
+                                        },
+                                        child: const Text('예'),
+                                      ),
+                                      FilledButton(
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  Colors.grey),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('아니오'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text(
+                              '일정 나가기',
+                              style: TextStyle(
+                                fontFamily: 'komi',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                  ),
+                  PopupMenuItem(
+                    child: owner
+                        ? TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  String cName = '';
+                                  return AlertDialog(
+                                    title: const Text(
+                                      '일정 이름 변경',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                    content: TextField(
+                                      decoration: const InputDecoration(
+                                        label: Text('변경할 이름'),
+                                      ),
+                                      onChanged: (value) => cName = value,
+                                    ),
+                                    actions: [
+                                      FilledButton(
+                                        onPressed: () {
+                                          changeTripName(cName);
+                                          Navigator.of(context).pop();
+                                          setState(() {});
+                                        },
+                                        child: const Text('확인'),
+                                      ),
+                                      FilledButton(
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  Colors.grey),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('취소'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text(
+                              '일정 이름 변경',
+                              style: TextStyle(
+                                fontFamily: 'komi',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                ];
+              },
+            ),
+          ],
+        ),
+        body: ModalProgressHUD(
+          inAsyncCall: TripOn.loading,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                //여행 일정
+                Container(
+                  margin: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      width: 3,
+                      color: Colors.black,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        tripName,
+                        style: const TextStyle(
+                          fontFamily: 'komi',
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Container(
+                        height: 3,
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        color: Colors.black,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          const Text(
+                            '여행 일정 : ',
+                            style: TextStyle(
+                              fontFamily: 'komi',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${startDay?.year}.${startDay?.month}.${startDay?.day}',
+                            style: const TextStyle(
+                              fontFamily: 'komi',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Text(
+                            '~',
+                            style: TextStyle(
+                              fontFamily: 'komi',
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${endDay?.year}.${endDay?.month}.${endDay?.day}',
+                            style: const TextStyle(
+                              fontFamily: 'komi',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                //Day
+                Container(
+                  height: 70,
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: dayNum,
+                          itemBuilder: (context, index) {
+                            return Container(
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(35),
+                                color: nowDay(index)
+                                    ? Colors.orange
+                                    : Colors.blue[300],
+                              ),
+                              child: TextButton(
+                                onPressed: () {
+                                  getPlanData(index);
+                                  setState(() {
+                                    activeBt(index);
+                                    addPlanDay = index;
+                                  });
+                                },
+                                child: Text(
+                                  'Day${index + 1}',
+                                  style: const TextStyle(
+                                    fontFamily: 'komi',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                  color: Colors.blue,
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                //Plan
+                TripPlan(
+                  tripName: widget.tripName,
+                  addPlanDay: addPlanDay,
+                  nowUser: nowUser,
+                  owner: owner,
+                  group: '아침',
+                ),
+                TripPlan(
+                  tripName: widget.tripName,
+                  addPlanDay: addPlanDay,
+                  nowUser: nowUser,
+                  owner: owner,
+                  group: '점심',
+                ),
+                TripPlan(
+                  tripName: widget.tripName,
+                  addPlanDay: addPlanDay,
+                  nowUser: nowUser,
+                  owner: owner,
+                  group: '저녁',
+                ),
+              ],
+            ),
+          ),
+        ),
+        //일정추가
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            color: Colors.blue[300],
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return StatefulBuilder(
+                    builder: (context, setState) {
+                      return AlertDialog(
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              child: DropdownButton(
+                                value: selGroup,
+                                items: dayGroup
+                                    .map(
+                                      (e) => DropdownMenuItem(
+                                        value: e,
+                                        child: Text(
+                                          e,
+                                          style: const TextStyle(
+                                            fontFamily: 'komi',
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selGroup = value!;
+                                  });
+                                },
+                              ),
+                            ),
+                            const Text(
+                              '일정 추가',
+                              style: TextStyle(
+                                fontFamily: 'komi',
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          FilledButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              addPlan(addPlanDay, _plan, selGroup, _link);
+                            },
+                            child: const Text('확인'),
+                          ),
+                          FilledButton(
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.grey),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text('취소'),
+                          ),
+                        ],
+                        content: Container(
+                          padding: const EdgeInsets.all(5),
+                          height: 200,
+                          width: 300,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextField(
+                                  style: const TextStyle(
+                                    fontFamily: 'komi',
+                                    fontSize: 25,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    label: Text(
+                                      '내용을 입력해주세요.',
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _plan = value;
+                                    });
+                                  },
+                                ),
+                                TextField(
+                                  style: const TextStyle(
+                                    fontFamily: 'komi',
+                                    fontSize: 20,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    label: Text(
+                                      '링크 참조',
+                                      style: TextStyle(
+                                        fontFamily: 'komi',
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _link = value;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+            icon: const Icon(Icons.add),
+            color: Colors.white,
+          ),
         ),
       ),
     );

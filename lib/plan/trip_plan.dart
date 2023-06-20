@@ -195,10 +195,11 @@ class _TripPlanState extends State<TripPlan> {
                   itemBuilder: (context, index) {
                     bool d = false;
                     bool link = false;
+                    String a = planDocs[index]['link'];
                     if (widget.nowUser?.uid == planDocs[index]['user']) {
                       d = true;
                     }
-                    if (planDocs[index]['link'] != null) {
+                    if (a.isNotEmpty) {
                       link = true;
                     }
                     return Row(
