@@ -32,8 +32,8 @@ class _TripOnState extends State<TripOn> {
   String uid = '';
   String tripName = '';
   int addPlanDay = 0;
-  String _plan = '';
-  String _link = '';
+  final String _plan = '';
+  final String _link = '';
   String tripId = '';
   var dayGroup = ['아침', '점심', '저녁'];
   String selGroup = '';
@@ -149,16 +149,62 @@ class _TripOnState extends State<TripOn> {
             .get();
         if (data.size > 0) {
           var dataNum = data.docs.toList().length;
-          for (int k = 0; k < dataNum; k++) {
-            await _store
+          for (int i1 = 0; i1 < dataNum; i1++) {
+            var like = await _store
                 .collection('trip')
                 .doc(widget.tripName)
                 .collection('day$i')
                 .doc(day[j])
                 .collection(day[j])
-                .doc(data.docs.toList()[i].id)
-                .delete();
+                .doc(data.docs.toList()[i1].id)
+                .collection('like')
+                .get();
+            if (like.docs.toList().isNotEmpty) {
+              for (int i2 = 0; i2 < like.docs.length; i2++) {
+                _store
+                    .collection('trip')
+                    .doc(widget.tripName)
+                    .collection('day$i')
+                    .doc(day[j])
+                    .collection(day[j])
+                    .doc(data.docs.toList()[i1].id)
+                    .collection('like')
+                    .doc(like.docs.toList()[i2].id)
+                    .delete();
+              }
+            }
+            var dislike = await _store
+                .collection('trip')
+                .doc(widget.tripName)
+                .collection('day$i')
+                .doc(day[j])
+                .collection(day[j])
+                .doc(data.docs.toList()[i1].id)
+                .collection('dislike')
+                .get();
+            if (dislike.docs.toList().isNotEmpty) {
+              for (int i2 = 0; i2 < dislike.docs.length; i2++) {
+                _store
+                    .collection('trip')
+                    .doc(widget.tripName)
+                    .collection('day$i')
+                    .doc(day[j])
+                    .collection(day[j])
+                    .doc(data.docs.toList()[i1].id)
+                    .collection('dislike')
+                    .doc(dislike.docs.toList()[i2].id)
+                    .delete();
+              }
+            }
           }
+          await _store
+              .collection('trip')
+              .doc(widget.tripName)
+              .collection('day$i')
+              .doc(day[j])
+              .collection(day[j])
+              .doc(data.docs.toList()[i].id)
+              .delete();
         }
       }
     }
