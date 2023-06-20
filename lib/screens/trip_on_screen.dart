@@ -32,8 +32,8 @@ class _TripOnState extends State<TripOn> {
   String uid = '';
   String tripName = '';
   int addPlanDay = 0;
-  final String _plan = '';
-  final String _link = '';
+  String _plan = '';
+  String _link = '';
   String tripId = '';
   var dayGroup = ['아침', '점심', '저녁'];
   String selGroup = '';
