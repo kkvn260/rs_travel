@@ -305,7 +305,7 @@ class _MainTripState extends State<MainTrip> {
                           ),
                           child: SingleChildScrollView(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Transform.scale(
                                   scale: 2,
@@ -398,7 +398,7 @@ class _MainTripState extends State<MainTrip> {
                           ),
                           child: SingleChildScrollView(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Transform.scale(
                                   scale: 2,

@@ -37,7 +37,7 @@ class _TripOnState extends State<TripOn> {
   String tripId = '';
   var dayGroup = ['아침', '점심', '저녁'];
   String selGroup = '';
-  String nickName = '';
+  // String nickName = '';
 
   @override
   void initState() {
@@ -51,9 +51,9 @@ class _TripOnState extends State<TripOn> {
     var data = await _store.collection('trip').doc(widget.tripName).get();
     var user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      var getNick = await _store.collection('user').doc(user.uid).get();
+      // var getNick = await _store.collection('user').doc(user.uid).get();
       nowUser = user;
-      nickName = getNick.data()!['userName'];
+      // nickName = getNick.data()!['userName'];
     }
     uid = data.data()!['owner'];
     tripName = data.data()!['name'];
@@ -137,7 +137,7 @@ class _TripOnState extends State<TripOn> {
           .doc(data.docs.toList()[i].id)
           .delete();
     }
-    for (int j = 0; j < 2; j++) {
+    for (int j = 0; j < 3; j++) {
       var day = ['아침', '점심', '저녁'];
       for (int i = 0; i < dayNum; i++) {
         var data = await _store
