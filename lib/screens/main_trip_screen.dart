@@ -76,8 +76,10 @@ class _MainTripState extends State<MainTrip> {
   void joinTrip(String code) async {
     var trip = await _store.collection('trip').get();
     int already = 0;
+    bool exist = false;
     for (int i = 0; i < trip.docs.length; i++) {
       if (trip.docs.toList()[i].id == code) {
+        exist = true;
         var data =
             await _store.collection('trip').doc(code).collection('group').get();
         for (int j = 0; j < data.docs.length; j++) {
@@ -86,19 +88,12 @@ class _MainTripState extends State<MainTrip> {
             break;
           }
         }
-        setState(() {
-          exist = true;
-        });
-      } else {
-        setState(() {
-          exist = false;
-        });
       }
     }
-    joinResult(already);
+    joinResult(already, exist, code);
   }
 
-  void joinResult(int a) {
+  void joinResult(int a, bool exist, String code) async {
     if (a == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -109,13 +104,12 @@ class _MainTripState extends State<MainTrip> {
       return;
     }
     if (exist) {
-      Navigator.pop(context);
-      setState(() {
-        tripList.clear();
-        tripId.clear();
-        working = true;
-        getTripDate();
-      });
+      await _store
+          .collection('trip')
+          .doc(code)
+          .collection('group')
+          .add({'user': nowUser?.uid});
+      joinDone();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -124,6 +118,11 @@ class _MainTripState extends State<MainTrip> {
         ),
       );
     }
+  }
+
+  void joinDone() {
+    Navigator.pop(context);
+    refresh();
   }
 
   @override
